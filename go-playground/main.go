@@ -18,4 +18,5 @@ func main() {
 	fmt.Println("Job Application:")
 	fmt.Printf("Company: %s\nTitle: %s\nStatus: %s\nFeedback: %s\n", job.Company, job.Title, job.Status, job.Feedback)
 	fmt.Println("Something to commit")
+	fmt.Println("Another test")
 }
