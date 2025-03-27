@@ -5,4 +5,5 @@ type Job struct {
 	Company string
 	Title   string
 	Status  string
+	Feedback string
 }

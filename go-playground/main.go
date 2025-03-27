@@ -12,8 +12,9 @@ func main() {
 		Company: "antdevrealm",
 		Title: "Go Developer",
 		Status: "Applied",
+		Feedback: "TestFeedback",
 	}
 
 	fmt.Println("Job Application:")
-	fmt.Printf("Company: %s\nTitle: %s\nStatus: %s\n", job.Company, job.Title, job.Status)
+	fmt.Printf("Company: %s\nTitle: %s\nStatus: %s\nFeedback: %s\n", job.Company, job.Title, job.Status, job.Feedback)
 }
