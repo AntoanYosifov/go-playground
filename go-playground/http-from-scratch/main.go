@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"http-from-scratch/parser"
+	"http-from-scratch/response"
 	"io"
 	"log"
 	"net"
@@ -46,28 +48,19 @@ func handleConnection(conn net.Conn) {
 
 		var body string
 		var status string
-		var response string
+		var responseValue string
 
 		if len(lines) > 0 {
 			requestLine := lines[0]
-			parts := strings.Split(requestLine, " ")
-
-			if len(parts) == 3 {
-				method = parts[0]
-				path = parts[1]
-				version = parts[2]
-			}
+			method, path, version = parser.ParseRequestLine(requestLine)
 		}
 
 		if method == "" || path == "" || version == "" {
 			status = "400 Bad Request"
 			body = "400 Bad Request"
-			response = fmt.Sprintf(
-				"HTTP/1.1 %s\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s",
-				status, len(body), body,
-			)
-			conn.Write([]byte(response))
-			log.Println("Bad Request!")
+			responseValue = response.BuildResponse(status, body)
+			conn.Write([]byte(responseValue))
+			log.Println("Bad Request")
 			return
 		}
 
@@ -89,12 +82,8 @@ func handleConnection(conn net.Conn) {
 		}
 
 		if status != "" {
-			response = fmt.Sprintf(
-				"HTTP/1.1 %s\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s",
-				status, len(body), body,
-			)
-
-			_, err := conn.Write([]byte(response))
+			responseValue = response.BuildResponse(status, body)
+			_, err := conn.Write([]byte(responseValue))
 			if err != nil {
 				log.Println("Error writing response: ", err)
 			}
