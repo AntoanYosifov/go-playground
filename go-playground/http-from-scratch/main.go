@@ -10,7 +10,6 @@ import (
 
 func main() {
 	listen, err := net.Listen("tcp", ":8080")
-
 	if err != nil {
 		log.Fatal("Error occurred starting the server: ", err)
 	}
@@ -43,37 +42,63 @@ func handleConnection(conn net.Conn) {
 
 		rawRequest := string(buf[:n])
 		lines := strings.Split(rawRequest, "\r\n")
-		requestLine := lines[0]
-		parts := strings.Split(requestLine, " ")
+		var method, path, version string
 
-		if len(parts) == 3 {
-			method := parts[0]
-			path := parts[1]
-			version := parts[2]
+		var body string
+		var status string
+		var response string
 
-			fmt.Println("Method: " + method)
-			fmt.Println("Path: " + path)
-			fmt.Println("Version: " + version)
+		if len(lines) > 0 {
+			requestLine := lines[0]
+			parts := strings.Split(requestLine, " ")
+
+			if len(parts) == 3 {
+				method = parts[0]
+				path = parts[1]
+				version = parts[2]
+			}
 		}
 
-		if n > 0 {
-			fmt.Println("Received HTTP request:")
-			fmt.Println(rawRequest)
+		if method == "" || path == "" || version == "" {
+			status = "400 Bad Request"
+			body = "400 Bad Request"
+			response = fmt.Sprintf(
+				"HTTP/1.1 %s\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s",
+				status, len(body), body,
+			)
+			conn.Write([]byte(response))
+			log.Println("Bad Request!")
+			return
+		}
 
-			body := "Hello from antdevrealm"
-			response := fmt.Sprintf("HTTP/1.1 200 OK\r\n"+
-				"Content-Type: text/plain\r\n"+
-				"Content-Length: %d\r\n"+
-				"\r\n%s",
-				len(body), body,
+		if method == "GET" {
+			switch path {
+			case "/":
+				status = "200 OK"
+				body = "Welcome to the homepage"
+				break
+
+			case "/about":
+				status = "200 OK"
+				body = "This is a raw Go TCP server built with LOVE"
+
+			default:
+				status = "404 Not Found"
+				body = "404 Not Found"
+			}
+		}
+
+		if status != "" {
+			response = fmt.Sprintf(
+				"HTTP/1.1 %s\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s",
+				status, len(body), body,
 			)
 
 			_, err := conn.Write([]byte(response))
-
 			if err != nil {
-				log.Println("Error writing message: ", err)
+				log.Println("Error writing response: ", err)
 			}
-			break
 		}
+
 	}
 }
