@@ -43,6 +43,7 @@ func handleConnection(conn net.Conn) {
 		}
 
 		rawRequest := string(buf[:n])
+		fmt.Println(rawRequest)
 		req := parser.Parse(rawRequest)
 
 		var body string
@@ -61,6 +62,10 @@ func handleConnection(conn net.Conn) {
 
 		if req.Method == "GET" {
 			status, body = router.HandleGet(req.Path)
+		}
+
+		if req.Method == "POST" {
+			status, body = router.HandlePost(req.Path, req.Body, req.Headers)
 		}
 
 		if status != "" {
