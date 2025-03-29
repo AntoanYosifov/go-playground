@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"http-from-scratch/parser"
 	"http-from-scratch/response"
+	"http-from-scratch/router"
 	"io"
 	"log"
 	"net"
-	"strings"
 )
 
 func main() {
@@ -43,19 +43,14 @@ func handleConnection(conn net.Conn) {
 		}
 
 		rawRequest := string(buf[:n])
-		lines := strings.Split(rawRequest, "\r\n")
-		var method, path, version string
+		req := parser.Parse(rawRequest)
 
 		var body string
 		var status string
 		var responseValue string
 
-		if len(lines) > 0 {
-			requestLine := lines[0]
-			method, path, version = parser.ParseRequestLine(requestLine)
-		}
 
-		if method == "" || path == "" || version == "" {
+		if req.Method == "" || req.Path == "" || req.Version == "" {
 			status = "400 Bad Request"
 			body = "400 Bad Request"
 			responseValue = response.BuildResponse(status, body)
@@ -64,21 +59,8 @@ func handleConnection(conn net.Conn) {
 			return
 		}
 
-		if method == "GET" {
-			switch path {
-			case "/":
-				status = "200 OK"
-				body = "Welcome to the homepage"
-				break
-
-			case "/about":
-				status = "200 OK"
-				body = "This is a raw Go TCP server built with LOVE"
-
-			default:
-				status = "404 Not Found"
-				body = "404 Not Found"
-			}
+		if req.Method == "GET" {
+			status, body = router.HandleGet(req.Path)
 		}
 
 		if status != "" {
@@ -88,6 +70,5 @@ func handleConnection(conn net.Conn) {
 				log.Println("Error writing response: ", err)
 			}
 		}
-
 	}
 }
