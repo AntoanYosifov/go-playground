@@ -7,28 +7,28 @@ import (
 	"strings"
 )
 
-func HandlePost(path string, body string, headers map[string]string) (status string, response string, job *models.Job) {
+func HandlePost(path string, body string, headers map[string]string, jobs *[]models.Job) (status string, response string) {
 	switch path {
 	case "/jobs":
 		contentType := headers["Content-Type"]
 
 		if strings.Contains(contentType, "application/json") {
-			var job models.Job
-			err := json.Unmarshal([]byte(body), &job)
+			var newJobs []models.Job
+			err := json.Unmarshal([]byte(body), &newJobs)
 			if err != nil {
-				return "400 Bad Request", "Invalid JSON", nil
+				return "400 Bad Request", "Invalid JSON array"
 			}
 
-			fmt.Println("Job received: ", job)
-			return "201 Created", "Job added", &job
+			*jobs = append(*jobs, newJobs...)
+			return "201 Created", fmt.Sprintf("Added %d job(s)", len(newJobs))
 
 		} else if strings.Contains(contentType, "application/x-www-form-urlencoded") {
-			return "200 OK", "Received Form:\n" + body, nil
+			return "200 OK", "Received Form:\n" + body
 		}
 
-		return "415 Unsupported Media Type", "Unsupported Content-Type: " + contentType, nil
+		return "415 Unsupported Media Type", "Unsupported Content-Type: " + contentType
 
 	default:
-		return "404 Not Found", "404 Not Found", nil
+		return "404 Not Found", "404 Not Found"
 	}
 }

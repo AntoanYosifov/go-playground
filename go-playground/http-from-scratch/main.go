@@ -50,7 +50,7 @@ func handleConnection(conn net.Conn) {
 
 		var body string
 		var status string
-		var job *models.Job
+
 		var responseValue string
 
 		if req.Method == "" || req.Path == "" || req.Version == "" {
@@ -67,11 +67,7 @@ func handleConnection(conn net.Conn) {
 		}
 
 		if req.Method == "POST" {
-			status, body, job = router.HandlePost(req.Path, req.Body, req.Headers)
-
-			if job != nil {
-				jobs = append(jobs, *job)
-			}
+			status, body = router.HandlePost(req.Path, req.Body, req.Headers, &jobs)
 		}
 
 		if status != "" {
