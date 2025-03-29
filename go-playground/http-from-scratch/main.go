@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"http-from-scratch/models"
 	"http-from-scratch/parser"
 	"http-from-scratch/response"
 	"http-from-scratch/router"
@@ -9,6 +10,8 @@ import (
 	"log"
 	"net"
 )
+
+var jobs []models.Job = []models.Job{}
 
 func main() {
 	listen, err := net.Listen("tcp", ":8080")
@@ -43,13 +46,12 @@ func handleConnection(conn net.Conn) {
 		}
 
 		rawRequest := string(buf[:n])
-		fmt.Println(rawRequest)
 		req := parser.Parse(rawRequest)
 
 		var body string
 		var status string
+		var job *models.Job
 		var responseValue string
-
 
 		if req.Method == "" || req.Path == "" || req.Version == "" {
 			status = "400 Bad Request"
@@ -61,11 +63,15 @@ func handleConnection(conn net.Conn) {
 		}
 
 		if req.Method == "GET" {
-			status, body = router.HandleGet(req.Path)
+			status, body = router.HandleGet(req.Path, jobs)
 		}
 
 		if req.Method == "POST" {
-			status, body = router.HandlePost(req.Path, req.Body, req.Headers)
+			status, body, job = router.HandlePost(req.Path, req.Body, req.Headers)
+
+			if job != nil {
+				jobs = append(jobs, *job)
+			}
 		}
 
 		if status != "" {
